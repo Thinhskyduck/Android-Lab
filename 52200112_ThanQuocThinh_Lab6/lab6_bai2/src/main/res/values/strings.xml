@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">lab6_bai2</string>
+    <string name="text_view">Nội dung ở đây</string>
+    <string name="btn_doc_in">ĐỌC INTERNAL</string>
+    <string name="btn_doc_ex">ĐỌC EXTERNAL</string>
+    <string name="btn_ghi_in">GHI INTERNAL</string>
+    <string name="btn_ghi_ex">GHI EXTERNAL</string>
+</resources>

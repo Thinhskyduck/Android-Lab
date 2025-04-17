@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/optionRemove"
+        android:title="@string/option_remove" />
+
+    <item
+        android:id="@+id/optionAbout"
+        android:title="@string/option_about" />
+
+    <item
+        android:id="@+id/optionAdd"
+        android:title="@string/option_add"
+        android:icon="@drawable/icon_add"
+        android:showAsAction="ifRoom|withText"
+        tools:ignore="AppCompatResource,UnusedAttribute" />
+
+    <item
+        android:id="@+id/switchStatus"
+        android:title="@string/option_switch"
+        android:showAsAction="ifRoom|withText"
+        tools:ignore="AppCompatResource,UnusedAttribute"
+        android:iconTint="@color/white"
+        android:actionLayout="@layout/switch_menu"/>
+
+</menu>

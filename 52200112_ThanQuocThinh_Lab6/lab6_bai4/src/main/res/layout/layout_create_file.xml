@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/tv_create_file"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create a file"
+        android:textStyle="bold"
+        android:textSize="22sp"
+        android:textColor="@color/black"/>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/edt_file_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="5dp"
+            android:hint="Enter your file name"
+            android:inputType="text"
+            android:maxLines="1"
+            android:minHeight="48dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="5dp"
+            android:text="."
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:gravity="bottom"
+            android:paddingBottom="10dp"/>
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/edt_file_ext"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:hint="Extension"
+            android:text="txt"
+            android:inputType="text"
+            android:maxLines="1"
+            android:minHeight="48dp" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/edt_file_content"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginTop="5dp"
+        android:hint="Enter your file name"
+        android:gravity="top"
+        android:minHeight="48dp" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>

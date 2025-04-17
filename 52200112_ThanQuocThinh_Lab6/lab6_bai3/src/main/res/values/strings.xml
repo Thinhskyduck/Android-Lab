@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">lab6_bai3</string>
+    <string name="option_remove">Remove all</string>
+    <string name="option_about">About</string>
+    <string name="option_switch">View enabled events</string>
+    <string name="option_add">New event</string>
+    <string name="remove_confirm_dialog">Are you sure to remove all events?</string>
+    <string name="hint_event_name">Name</string>
+    <string name="hint_event_place">Place</string>
+    <string name="hint_event_date">Date</string>
+    <string name="hint_event_time">Time</string>
+    <string name="helper_event_name">Please enter event name</string>
+    <string name="helper_event_place">Please enter event place</string>
+    <string name="helper_event_time">Please enter event time</string>
+    <string name="helper_event_date">Please enter event date</string>
+    <string name="text_view_default">TextViewHere</string>
+    <string name="option_event_delete">Delete</string>
+    <string name="option_event_edit">Edit</string>
+</resources>

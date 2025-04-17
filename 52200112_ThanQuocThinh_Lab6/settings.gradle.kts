@@ -19,6 +19,8 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "52200112_ex2"
-include(":app")
- 
+rootProject.name = "lab6"
+include(":lab6_bai1")
+include(":lab6_bai2")
+include(":lab6_bai3")
+include(":lab6_bai4")

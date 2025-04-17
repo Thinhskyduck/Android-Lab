@@ -10,7 +10,10 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/lab6_bai1" />
+            <option value="$PROJECT_DIR$/lab6_bai2" />
+            <option value="$PROJECT_DIR$/lab6_bai3" />
+            <option value="$PROJECT_DIR$/lab6_bai4" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="false" />

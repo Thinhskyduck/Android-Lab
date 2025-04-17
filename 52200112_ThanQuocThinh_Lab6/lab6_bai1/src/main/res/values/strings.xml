@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">lab6_bai1</string>
+    <string name="txt_hex">Text Hex</string>
+    <string name="txt_color">Text Color</string>
+    <string name="bg_color">Background Color</string>
+    <string name="btn_text">SAVE</string>
+    <string name="txt_no_access">0</string>
+    <!--    Shared Preferences  -->
+    <string name="app_pref">Lab6Bai1SharedPref</string>
+    <string name="pref_no_access">noAccess</string>
+    <string name="pref_txt_color">textColor</string>
+    <string name="pref_bg_color">backgroundColor</string>
+</resources>

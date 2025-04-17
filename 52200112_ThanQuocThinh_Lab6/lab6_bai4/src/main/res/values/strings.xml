@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">lab6_bai4 - MyFileExplorer</string>
+    <string name="url">Directory url</string>
+    <string name="btn_back">BACK</string>
+    <string name="component_name">Component name</string>
+    <string name="optionmenu_delete_selected">Delete selected</string>
+    <string name="optionmenu_delete_all">Delete all</string>
+    <string name="menu_create_folder_title">Create a folder</string>
+    <string name="menu_create_folder_hint">Enter your folder name</string>
+    <string name="menu_create_file_title">Create a file</string>
+    <string name="menu_create_file_name">Create your file name</string>
+    <string name="menu_create_file_content">Create your file content</string>
+</resources>
