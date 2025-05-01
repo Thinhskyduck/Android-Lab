@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">lab8_bai2_52200110_receiver</string>
+    <string name="hint">Ứng dụng này được sử dụng để nhận tin nhắn từ Sender. Vui lòng truy cập vào Sender để gửi một tin nhắn và xem kết quả trên thanh thông báo!</string>
+    <string name="err">Ứng dụng chưa được cấp quyền thông báo. Nhấn vào đây để biết thêm chi tiết!</string>
+</resources>
