@@ -1,5 +1,0 @@
-<resources>
-    <string name="app_name">lab8_bai1_52200110</string>
-    <string name="domain_api">192.168.1.9</string>
-    <string name="port">81</string>
-</resources>
