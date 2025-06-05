@@ -11,7 +11,6 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +19,16 @@ public class MusicService extends Service {
     private MediaPlayer mediaPlayer;
     private List<Uri> songList = new ArrayList<>();
     private int currentPosition = 0;
+    private OnPlaybackListener playbackListener;
+
+    public interface OnPlaybackListener {
+        void onPlaybackError(String error);
+        void onPositionChanged(int newPosition); // Thêm callback cho vị trí thay đổi
+    }
+
+    public void setPlaybackListener(OnPlaybackListener listener) {
+        this.playbackListener = listener;
+    }
 
     public class LocalBinder extends Binder {
         MusicService getService() {
@@ -69,6 +78,13 @@ public class MusicService extends Service {
     }
 
     public void playSong(int position) {
+        if (position < 0 || position >= songList.size()) {
+            if (playbackListener != null) {
+                playbackListener.onPlaybackError("Invalid position: " + position);
+            }
+            return;
+        }
+
         if (mediaPlayer != null) {
             mediaPlayer.release();
             mediaPlayer = null;
@@ -81,24 +97,75 @@ public class MusicService extends Service {
             mediaPlayer.prepare();
             mediaPlayer.start();
             mediaPlayer.setOnCompletionListener(mp -> playNext());
+            if (playbackListener != null) {
+                playbackListener.onPositionChanged(currentPosition); // Thông báo vị trí thay đổi
+            }
             Log.d("MusicService", "Playing song at position " + position + " from URI: " + uri.toString());
         } catch (Exception e) {
             Log.e("MusicService", "Error playing song: " + e.getMessage());
+            if (playbackListener != null) {
+                playbackListener.onPlaybackError("Error playing song: " + e.getMessage());
+            }
         }
     }
 
-    private void playNext() {
+    public void play() {
+        if (mediaPlayer != null && !mediaPlayer.isPlaying()) {
+            mediaPlayer.start();
+            Log.d("MusicService", "Resumed song at position " + currentPosition);
+        }
+    }
+
+    public void pause() {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+            Log.d("MusicService", "Paused song at position " + currentPosition);
+        }
+    }
+
+    public boolean isPlaying() {
+        return mediaPlayer != null && mediaPlayer.isPlaying();
+    }
+
+    public void playNext() {
         if (currentPosition < songList.size() - 1) {
             playSong(currentPosition + 1);
         }
     }
 
+    public void playPrevious() {
+        if (currentPosition > 0) {
+            playSong(currentPosition - 1);
+        }
+    }
+
+    public void seekTo(int progress) {
+        if (mediaPlayer != null) {
+            mediaPlayer.seekTo(progress);
+            Log.d("MusicService", "Seeked to " + progress + " ms");
+        }
+    }
+
     public int getCurrentPosition() {
-        return mediaPlayer != null ? mediaPlayer.getCurrentPosition() : 0;
+        try {
+            return mediaPlayer != null ? mediaPlayer.getCurrentPosition() : 0;
+        } catch (IllegalStateException e) {
+            Log.e("MusicService", "Error getting current position: " + e.getMessage());
+            return 0;
+        }
     }
 
     public int getDuration() {
-        return mediaPlayer != null ? mediaPlayer.getDuration() : 0;
+        try {
+            return mediaPlayer != null ? mediaPlayer.getDuration() : 0;
+        } catch (IllegalStateException e) {
+            Log.e("MusicService", "Error getting duration: " + e.getMessage());
+            return 0;
+        }
+    }
+
+    public int getCurrentSongPosition() {
+        return currentPosition; // Getter cho vị trí bài hát hiện tại
     }
 
     @Override

@@ -7,20 +7,18 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.io.File;
-import java.util.Arrays;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,11 +26,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements MusicAdapter.OnItemClickListener {
+public class MainActivity extends AppCompatActivity implements MusicAdapter.OnItemClickListener, MusicService.OnPlaybackListener {
 
     private static final int STORAGE_PERMISSION_CODE = 101;
     private RecyclerView recyclerView;
@@ -42,6 +39,10 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.OnIt
     private boolean isBound = false;
     private SeekBar seekBar;
     private TextView currentTimeText, totalTimeText;
+    private ImageButton btnPlayPause, btnNext, btnBack;
+    private Handler handler = new Handler();
+    private Runnable updateSeekBar;
+    private int currentSongPosition = -1; // Biến để theo dõi vị trí bài hát hiện tại
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -49,8 +50,10 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.OnIt
             MusicService.LocalBinder binder = (MusicService.LocalBinder) service;
             musicService = binder.getService();
             isBound = true;
-            musicService.setSongList(songList); // Truyền danh sách bài hát
+            musicService.setSongList(songList);
+            musicService.setPlaybackListener(MainActivity.this);
             updateMediaControls();
+            startSeekBarUpdate();
             Log.d("MainActivity", "Service connected successfully, songList size: " + songList.size());
         }
 
@@ -58,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.OnIt
         public void onServiceDisconnected(ComponentName name) {
             isBound = false;
             musicService = null;
+            stopSeekBarUpdate();
             Log.d("MainActivity", "Service disconnected unexpectedly");
         }
     };
@@ -68,19 +72,23 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.OnIt
         setContentView(R.layout.activity_main);
         recyclerView = findViewById(R.id.recyclerView);
         songList = new ArrayList<>();
-        adapter = new MusicAdapter(this, songList, this); // this là Context và OnItemClickListener
+        adapter = new MusicAdapter(this, songList, this);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         seekBar = findViewById(R.id.seekBar);
         currentTimeText = findViewById(R.id.currentTimeText);
         totalTimeText = findViewById(R.id.totalTimeText);
+        btnPlayPause = findViewById(R.id.btnPlayPause);
+        btnNext = findViewById(R.id.btnNext);
+        btnBack = findViewById(R.id.btnBack);
+        setupMediaControls();
         checkStoragePermission();
         Log.d("MainActivity", "onCreate: Starting permission check...");
     }
 
     private void checkStoragePermission() {
         Log.d("MainActivity", "Checking storage permission...");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13+ (API 33)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO)
                     != PackageManager.PERMISSION_GRANTED) {
                 Log.d("MainActivity", "READ_MEDIA_AUDIO permission not granted, requesting...");
@@ -103,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.OnIt
                 Log.d("MainActivity", "READ_MEDIA_AUDIO permission already granted, loading songs...");
                 loadSongs();
             }
-        } else { // Dưới Android 13, dùng READ_EXTERNAL_STORAGE
+        } else {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {
                 Log.d("MainActivity", "READ_EXTERNAL_STORAGE permission not granted, requesting...");
@@ -217,23 +225,37 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.OnIt
     }
 
     private void setupMediaControls() {
-        findViewById(R.id.btnBack).setOnClickListener(v -> {
-            if (isBound && musicService != null) musicService.playPrevious();
-            updateMediaControls();
+        btnBack.setOnClickListener(v -> {
+            if (isBound && musicService != null) {
+                musicService.playPrevious();
+                currentSongPosition = musicService.getCurrentSongPosition();
+                recyclerView.scrollToPosition(currentSongPosition); // Cuộn đến vị trí bài hát
+                updateMediaControls();
+                Log.d("MainActivity", "Pressed Back, current position: " + currentSongPosition);
+            }
         });
-        findViewById(R.id.btnPlayPause).setOnClickListener(v -> {
+
+        btnPlayPause.setOnClickListener(v -> {
             if (isBound && musicService != null) {
                 if (musicService.isPlaying()) {
                     musicService.pause();
+                    btnPlayPause.setImageResource(android.R.drawable.ic_media_play);
                 } else {
                     musicService.play();
+                    btnPlayPause.setImageResource(android.R.drawable.ic_media_pause);
                 }
+                updateMediaControls();
             }
-            updateMediaControls();
         });
-        findViewById(R.id.btnNext).setOnClickListener(v -> {
-            if (isBound && musicService != null) musicService.playNext();
-            updateMediaControls();
+
+        btnNext.setOnClickListener(v -> {
+            if (isBound && musicService != null) {
+                musicService.playNext();
+                currentSongPosition = musicService.getCurrentSongPosition();
+                recyclerView.scrollToPosition(currentSongPosition); // Cuộn đến vị trí bài hát
+                updateMediaControls();
+                Log.d("MainActivity", "Pressed Next, current position: " + currentSongPosition);
+            }
         });
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -241,6 +263,7 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.OnIt
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser && isBound && musicService != null) {
                     musicService.seekTo(progress);
+                    currentTimeText.setText(formatTime(progress));
                 }
             }
 
@@ -260,10 +283,32 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.OnIt
             seekBar.setProgress(currentPosition);
             currentTimeText.setText(formatTime(currentPosition));
             totalTimeText.setText(formatTime(duration));
+            btnPlayPause.setImageResource(musicService.isPlaying() ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play);
             findViewById(R.id.mediaControls).setVisibility(View.VISIBLE);
             Log.d("MainActivity", "Updated media controls: position=" + currentPosition + ", duration=" + duration);
         } else {
             Log.e("MainActivity", "Cannot update media controls, service not bound");
+        }
+    }
+
+    private void startSeekBarUpdate() {
+        updateSeekBar = new Runnable() {
+            @Override
+            public void run() {
+                if (isBound && musicService != null) {
+                    int currentPosition = musicService.getCurrentPosition();
+                    seekBar.setProgress(currentPosition);
+                    currentTimeText.setText(formatTime(currentPosition));
+                    handler.postDelayed(this, 1000);
+                }
+            }
+        };
+        handler.postDelayed(updateSeekBar, 1000);
+    }
+
+    private void stopSeekBarUpdate() {
+        if (updateSeekBar != null) {
+            handler.removeCallbacks(updateSeekBar);
         }
     }
 
@@ -277,12 +322,13 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.OnIt
     @Override
     public void onItemClick(int position) {
         if (isBound && musicService != null) {
+            currentSongPosition = position;
             musicService.playSong(position);
+            recyclerView.scrollToPosition(currentSongPosition);
             updateMediaControls();
             Log.d("MainActivity", "Clicked song at position " + position);
         } else {
             Log.e("MainActivity", "Service not bound or musicService is null");
-            // Thử bind lại nếu chưa bind
             Intent intent = new Intent(this, MusicService.class);
             startService(intent);
             bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
@@ -290,10 +336,28 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.OnIt
     }
 
     @Override
+    public void onPlaybackError(String error) {
+        runOnUiThread(() -> {
+            Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+            Log.e("MainActivity", "Playback error: " + error);
+        });
+    }
+
+    @Override
+    public void onPositionChanged(int newPosition) {
+        currentSongPosition = newPosition;
+        runOnUiThread(() -> {
+            recyclerView.scrollToPosition(currentSongPosition);
+            updateMediaControls();
+            Log.d("MainActivity", "Position changed to: " + currentSongPosition);
+        });
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
         Intent intent = new Intent(this, MusicService.class);
-        startService(intent); // Khởi động dịch vụ trước
+        startService(intent);
         boolean bound = bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
         Log.d("MainActivity", "onStart: Binding to MusicService, bound=" + bound);
     }
@@ -304,8 +368,14 @@ public class MainActivity extends AppCompatActivity implements MusicAdapter.OnIt
         if (isBound) {
             unbindService(serviceConnection);
             isBound = false;
+            stopSeekBarUpdate();
             Log.d("MainActivity", "onStop: Unbinding from MusicService");
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopSeekBarUpdate();
+    }
 }
